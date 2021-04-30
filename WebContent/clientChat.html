@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>chatroom</title>
+		<style>
+			#chatroom {
+			display: block;
+			width: 100px;
+			height: 100px;
+			}
+			#history {
+			display: block;
+			width: 500px;
+			height: 300px;
+			float: left;
+			}
+			#currentUser {
+			display: inline-block;
+			width: 150px;
+			height: 300px;
+			}
+			#txtMessage {
+			display: block;
+			width: 300px;
+			}
+			#btnSend {
+			display: inline-block;
+			width: 180px;
+			}
+			#btnClose {
+			display: block;
+			width: 500px;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<textarea id="chatroom" readonly></textarea>
+		<textarea id="history" readonly></textarea>
+		<textarea id="currentUser" readonly></textarea>
+		<input id="txtMessage" type="text" />
+		<button id="btnSend">Send message</button>
+		<button id="btnClose">Close connection</button>
+		<script type="text/javascript">
+			window.addEventListener( "load", function( event ) {
+			   
+		    let pseudo = prompt( "Veuillez saisir votre pseudo :" );
+		    let roomName = prompt( "Veuillez entrer le chatroom :" );
+		    let ws = new WebSocket( "ws://localhost:8080/devoir2/chatserver/" + pseudo +"/"+ roomName);
+		    
+		    let txtHistory = document.getElementById( "history" );
+		    let txtMessage = document.getElementById( "txtMessage" );
+		    let currentUser = document.getElementById( "currentUser" );
+		    txtMessage.focus();
+		    
+		    ws.addEventListener( "open", function( evt ) {
+		        console.log( "Connection established" );
+		        chatroom.value += "Room Name: "+roomName;
+		    });
+
+		    ws.addEventListener( "message", function( evt ) {
+		        let jsonData = JSON.parse(evt.data);
+		        if(jsonData.messages != null) {txtHistory.value += jsonData.messages + "\n";}
+		        if(jsonData.users != null) {
+		        	currentUser.value = "";
+		        	var i = 0;
+		        	while(i<jsonData.users.length) currentUser.value += jsonData.users[i++] + "\n";
+		        	}
+		    });
+		    
+		    ws.addEventListener( "close", function( evt ) {
+		        console.log( "Connection closed" );
+		    });
+		    
+		    
+		    let btnSend = document.getElementById( "btnSend" );
+		    btnSend.addEventListener( "click", function( clickEvent ) {
+		        ws.send( txtMessage.value );
+		        txtMessage.value = "";
+		        txtMessage.focus();
+		    });
+		 
+		    let btnClose = document.getElementById( "btnClose" );
+		    btnClose.addEventListener( "click", function( clickEvent ) {
+		        ws.close();
+		    });
+		    
+		});
+		</script>
+	</body>
+</html>
